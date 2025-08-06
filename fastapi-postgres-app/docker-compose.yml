@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: ecommerce_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ecommerce
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - ecommerce_network
+
+  fastapi:
+    build: .
+    container_name: fastapi_app
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: yourpassword
+      DB_NAME: ecommerce
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - ecommerce_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  ecommerce_network:
+    driver: bridge
